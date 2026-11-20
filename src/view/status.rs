@@ -32,6 +32,8 @@ fn link_line(link: &LinkState) -> String {
     match link {
         LinkState::Waiting => "joining wifi".into(),
         LinkState::Fresh { age } => format!("fresh {}s", age.as_secs()),
+        LinkState::Stale { age, why } => format!("stale {}s: {why}", age.as_secs()),
+        LinkState::Lost { why } => format!("no drover: {why}"),
     }
 }
 

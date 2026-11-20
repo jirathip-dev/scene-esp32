@@ -9,6 +9,7 @@ compile_error!(
 pub mod app;
 pub mod art;
 pub mod model;
+pub mod net;
 pub mod render;
 pub mod view;
 
@@ -19,5 +20,6 @@ pub const PANEL: &str = if cfg!(feature = "st7789") {
     "ILI9341"
 };
 
-/// drover's demo-fleet export of `/screens/scene`, checked in as the fixture.
+/// drover's demo-fleet export of `/screens/scene`, checked in as the fixture for the host's tests and shots.
+#[cfg(not(target_os = "espidf"))]
 pub const SCENE: &str = include_str!("../fixtures/scene.json");

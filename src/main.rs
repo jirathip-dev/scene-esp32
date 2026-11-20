@@ -3,9 +3,8 @@ mod board;
 use std::sync::mpsc::sync_channel;
 use std::time::Instant;
 
-use esp_idf_svc::sys::{heap_caps_get_total_size, EspError, ESP_FAIL, MALLOC_CAP_SPIRAM};
-use scene_esp32::app::{App, Event, Poll};
-use scene_esp32::model;
+use esp_idf_svc::sys::{heap_caps_get_total_size, EspError, MALLOC_CAP_SPIRAM};
+use scene_esp32::app::{App, Event};
 use scene_esp32::render::{self, FrameBuf};
 
 fn main() -> Result<(), EspError> {
@@ -16,6 +15,7 @@ fn main() -> Result<(), EspError> {
         mut tft,
         mut oled,
         mut led,
+        wifi,
         ..
     } = board::Board::take()?;
     let started = Instant::now();
@@ -28,14 +28,7 @@ fn main() -> Result<(), EspError> {
     );
 
     let (tx, rx) = sync_channel::<Event>(16);
-    let boot = tx.clone();
-    std::thread::Builder::new()
-        .stack_size(32 * 1024)
-        .spawn(move || match model::parse(scene_esp32::SCENE.as_bytes()) {
-            Ok(s) => drop(boot.send(Event::Poll(Poll::New(s)))),
-            Err(e) => log::error!("scene fixture does not parse: {e:?}"),
-        })
-        .map_err(|_| EspError::from_infallible::<ESP_FAIL>())?;
+    board::wifi::spawn(wifi, tx)?;
 
     let mut app = App::new();
     loop {

@@ -9,8 +9,9 @@ use embedded_graphics::pixelcolor::{BinaryColor, Rgb565, Rgb888, RgbColor};
 use embedded_graphics::prelude::Point;
 use scene_esp32::art::{self, Paint, Slot, SpriteId, BACKDROP, CHROME};
 use scene_esp32::model::{self, Sky, Weather};
+use scene_esp32::net::{Fail, LinkState};
 use scene_esp32::render::{self, FrameBuf, HEIGHT, WIDTH};
-use scene_esp32::view::{self, LinkState, Mode};
+use scene_esp32::view::{self, Mode};
 
 type Oled =
     Framebuffer<BinaryColor, RawU1, LittleEndian, 128, 64, { buffer_size::<BinaryColor>(128, 64) }>;
@@ -56,6 +57,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "oled-horse",
         &view::status(Some(&snapshot), &browse, &link, at),
     )?;
+    let stale = LinkState::Stale {
+        age: Duration::from_secs(45),
+        why: Fail::Timeout,
+    };
+    let lost = LinkState::Lost { why: Fail::NoWifi };
+    for (name, link) in [("stale", stale), ("lost", lost)] {
+        tft(name, &view::frame(Some(&snapshot), &ambient, &link, at))?;
+        oled(
+            &format!("oled-{name}"),
+            &view::status(Some(&snapshot), &ambient, &link, at),
+        )?;
+    }
     write_art()
 }
 
