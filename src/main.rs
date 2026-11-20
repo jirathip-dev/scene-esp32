@@ -3,7 +3,7 @@ mod board;
 use std::sync::mpsc::sync_channel;
 use std::time::Instant;
 
-use esp_idf_svc::sys::{heap_caps_get_total_size, EspError, ESP_FAIL, MALLOC_CAP_SPIRAM};
+use esp_idf_svc::sys::{heap_caps_get_total_size, EspError, MALLOC_CAP_SPIRAM};
 use scene_esp32::app::{App, Event};
 use scene_esp32::render::{self, FrameBuf};
 
