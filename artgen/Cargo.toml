@@ -1,0 +1,11 @@
+[package]
+name = "artgen"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+
+[dependencies]
+resvg = { version = "0.50", default-features = false }
+serde_json = "1"
+swag = { git = "https://github.com/jirathip-dev/swag", rev = "bf9a2c6b5cb837db1e844e4746fe166cbaa06b91" }

@@ -10,9 +10,18 @@ fn main() -> Result<(), EspError> {
     esp_idf_svc::sys::link_patches();
     esp_idf_svc::log::EspLogger::initialize_default();
 
-    match scene_esp32::block_count(scene_esp32::SCENE) {
-        Ok(n) => log::info!("scene fixture: {n} blocks"),
-        Err(e) => log::error!("scene fixture does not parse: {e}"),
+    match scene_esp32::model::parse(scene_esp32::SCENE.as_bytes()) {
+        Ok(s) => log::info!(
+            "scene fixture: {} repos, {} rows",
+            s.ranch.repos.len(),
+            s.ranch
+                .repos
+                .iter()
+                .flat_map(|r| &r.blocks)
+                .map(|b| b.rows.len())
+                .sum::<usize>()
+        ),
+        Err(e) => log::error!("scene fixture does not parse: {e:?}"),
     }
 
     let board::Board {
