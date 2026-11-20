@@ -15,7 +15,7 @@ use mipidsi::models::ST7789 as Model;
 use mipidsi::options::{ColorInversion, ColorOrder, Orientation, Rotation};
 use mipidsi::{interface::SpiInterface, Builder, Display};
 use scene_esp32::app::Backlight;
-use scene_esp32::render::{FrameBuf, HEIGHT, WIDTH};
+use scene_esp32::render::FrameBuf;
 
 use super::fail;
 
@@ -86,20 +86,26 @@ impl Tft {
         })
     }
 
-    /// Sends the rows `fb` touched since the last flush; a whole frame logs its time.
+    /// Sends the rectangles `fb` touched since the last flush and logs how long it took.
     pub fn flush(&mut self, fb: &mut FrameBuf) -> Result<(), EspError> {
-        let Some(rows) = fb.take_touched() else {
+        let touched = fb.take_touched();
+        if touched.is_empty() {
             return Ok(());
-        };
-        let started = Instant::now();
-        let (top, bottom) = (rows.start as u16, rows.end as u16 - 1);
-        let px = fb.rows(rows.clone()).iter().copied();
-        self.panel
-            .set_pixels(0, top, WIDTH as u16 - 1, bottom, px)
-            .map_err(fail("tft flush"))?;
-        if rows.end - rows.start == HEIGHT {
-            log::info!("full frame in {} ms", started.elapsed().as_millis());
         }
+        let started = Instant::now();
+        let mut sent = 0;
+        for area in touched {
+            let Some(end) = area.bottom_right() else {
+                continue;
+            };
+            let (x, y) = (area.top_left.x as u16, area.top_left.y as u16);
+            self.panel
+                .set_pixels(x, y, end.x as u16, end.y as u16, fb.pixels(area))
+                .map_err(fail("tft flush"))?;
+            sent += area.size.width * area.size.height;
+        }
+        let us = started.elapsed().as_micros();
+        log::info!("flush {sent} px in {us} us");
         Ok(())
     }
 

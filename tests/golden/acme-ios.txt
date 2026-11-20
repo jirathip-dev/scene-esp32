@@ -1,0 +1,32 @@
+Frame {
+    header: Header {
+        title: "acme-ios",
+        fleet: L,
+        counts: "",
+        page: (
+            1,
+            5,
+        ),
+        stale: None,
+    },
+    veil: None,
+    rain: false,
+    items: [
+        Item {
+            key: "big",
+            at: Point {
+                x: 127,
+                y: 70,
+            },
+            what: Big(
+                Empty,
+                "                      no lanes",
+            ),
+        },
+    ],
+    cursor: None,
+    caption: Caption {
+        text: "load 1.20 · mem normal · swap ?",
+        tone: Mute,
+    },
+}

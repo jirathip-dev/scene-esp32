@@ -1,0 +1,98 @@
+Frame {
+    header: Header {
+        title: "docs",
+        fleet: L,
+        counts: "1 queued·2 idle·1 done",
+        page: (
+            3,
+            5,
+        ),
+        stale: None,
+    },
+    veil: None,
+    rain: false,
+    items: [
+        Item {
+            key: "h-docs-q10",
+            at: Point {
+                x: 4,
+                y: 200,
+            },
+            what: Marker {
+                needs: false,
+                frame: 0,
+            },
+        },
+        Item {
+            key: "h-docs-impl-8",
+            at: Point {
+                x: 29,
+                y: 146,
+            },
+            what: Horse {
+                sprite: Idle,
+                coat: Some(
+                    Coat {
+                        coat: Rgb565(r: 24, g: 38, b: 10),
+                        dark: Rgb565(r: 20, g: 30, b: 7),
+                        mane: Rgb565(r: 28, g: 54, b: 23),
+                        blaze: Some(
+                            Rgb565(r: 29, g: 57, b: 27),
+                        ),
+                    },
+                ),
+                fleet: L,
+                sway: 0,
+            },
+        },
+        Item {
+            key: "h-docs-impl-7",
+            at: Point {
+                x: 85,
+                y: 146,
+            },
+            what: Horse {
+                sprite: Idle,
+                coat: Some(
+                    Coat {
+                        coat: Rgb565(r: 24, g: 38, b: 10),
+                        dark: Rgb565(r: 20, g: 30, b: 7),
+                        mane: Rgb565(r: 28, g: 54, b: 23),
+                        blaze: Some(
+                            Rgb565(r: 29, g: 57, b: 27),
+                        ),
+                    },
+                ),
+                fleet: L,
+                sway: 0,
+            },
+        },
+        Item {
+            key: "h-docs-impl-9",
+            at: Point {
+                x: 141,
+                y: 146,
+            },
+            what: Horse {
+                sprite: Done,
+                coat: Some(
+                    Coat {
+                        coat: Rgb565(r: 21, g: 35, b: 11),
+                        dark: Rgb565(r: 17, g: 27, b: 8),
+                        mane: Rgb565(r: 8, g: 12, b: 4),
+                        blaze: Some(
+                            Rgb565(r: 29, g: 57, b: 27),
+                        ),
+                    },
+                ),
+                fleet: L,
+                sway: 0,
+            },
+        },
+    ],
+    cursor: None,
+    caption: Caption {
+        text: "load 1.20 · mem normal · swap ?",
+        tone: Mute,
+    },
+}

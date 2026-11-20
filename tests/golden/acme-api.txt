@@ -1,0 +1,105 @@
+Frame {
+    header: Header {
+        title: "acme-api",
+        fleet: G,
+        counts: "2 queued·1 blocked·1 working·1 done",
+        page: (
+            0,
+            5,
+        ),
+        stale: None,
+    },
+    veil: None,
+    rain: false,
+    items: [
+        Item {
+            key: "h-acme-api-q21",
+            at: Point {
+                x: 4,
+                y: 200,
+            },
+            what: Marker {
+                needs: false,
+                frame: 0,
+            },
+        },
+        Item {
+            key: "h-acme-api-q22",
+            at: Point {
+                x: 28,
+                y: 200,
+            },
+            what: Marker {
+                needs: true,
+                frame: 0,
+            },
+        },
+        Item {
+            key: "h-acme-api-impl-19",
+            at: Point {
+                x: 29,
+                y: 146,
+            },
+            what: Horse {
+                sprite: Fail,
+                coat: Some(
+                    Coat {
+                        coat: Rgb565(r: 18, g: 26, b: 11),
+                        dark: Rgb565(r: 14, g: 20, b: 9),
+                        mane: Rgb565(r: 9, g: 13, b: 5),
+                        blaze: None,
+                    },
+                ),
+                fleet: G,
+                sway: 0,
+            },
+        },
+        Item {
+            key: "h-acme-api-impl-17",
+            at: Point {
+                x: 85,
+                y: 147,
+            },
+            what: Horse {
+                sprite: Working,
+                coat: Some(
+                    Coat {
+                        coat: Rgb565(r: 21, g: 35, b: 11),
+                        dark: Rgb565(r: 17, g: 27, b: 8),
+                        mane: Rgb565(r: 8, g: 12, b: 4),
+                        blaze: Some(
+                            Rgb565(r: 29, g: 57, b: 27),
+                        ),
+                    },
+                ),
+                fleet: G,
+                sway: -1,
+            },
+        },
+        Item {
+            key: "h-acme-api-rev-15",
+            at: Point {
+                x: 141,
+                y: 146,
+            },
+            what: Horse {
+                sprite: Done,
+                coat: Some(
+                    Coat {
+                        coat: Rgb565(r: 22, g: 46, b: 24),
+                        dark: Rgb565(r: 18, g: 39, b: 21),
+                        mane: Rgb565(r: 15, g: 32, b: 17),
+                        blaze: None,
+                    },
+                ),
+                fleet: G,
+                sway: 0,
+            },
+        },
+    ],
+    cursor: None,
+    caption: Caption {
+        text: "load 1.20 · mem normal · swap ?",
+        tone: Mute,
+    },
+}

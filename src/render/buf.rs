@@ -1,32 +1,33 @@
 use std::convert::Infallible;
 use std::ops::Range;
 
-use embedded_graphics::pixelcolor::raw::RawU16;
 use embedded_graphics::pixelcolor::{Rgb565, RgbColor};
-use embedded_graphics::prelude::{DrawTarget, OriginDimensions, Pixel, RawData, Size};
+use embedded_graphics::prelude::{
+    Dimensions, DrawTarget, OriginDimensions, Pixel, PointsIter, Size,
+};
+use embedded_graphics::primitives::Rectangle;
+
+use crate::view::Frame;
 
 /// The TFT's width in landscape.
 pub const WIDTH: u32 = 320;
 /// The TFT's height in landscape.
 pub const HEIGHT: u32 = 240;
 
-const FNV_OFFSET: u64 = 0xcbf2_9ce4_8422_2325;
-const FNV_PRIME: u64 = 0x0100_0000_01b3;
-
-/// The TFT's pixels (in PSRAM on the board) and the span of rows changed since the last flush.
+/// The TFT's pixels (in PSRAM on the board) and the rectangles changed since the last flush.
 pub struct FrameBuf {
     px: Vec<Rgb565>,
-    sums: Vec<u64>,
-    touched: Option<Range<u32>>,
+    touched: Vec<Rectangle>,
+    pub(crate) drawn: Option<Frame>,
 }
 
 impl FrameBuf {
-    /// A black buffer whose first draw touches every row, as the panel starts with noise.
+    /// A black buffer whose first draw paints every pixel, as the panel starts with noise.
     pub fn new() -> Self {
         Self {
             px: vec![Rgb565::BLACK; (WIDTH * HEIGHT) as usize],
-            sums: vec![0; HEIGHT as usize],
-            touched: None,
+            touched: Vec::new(),
+            drawn: None,
         }
     }
 
@@ -35,30 +36,45 @@ impl FrameBuf {
         &self.px[(rows.start * WIDTH) as usize..(rows.end * WIDTH) as usize]
     }
 
-    /// The rows touched since the last call; they are forgotten.
-    pub fn take_touched(&mut self) -> Option<Range<u32>> {
-        self.touched.take()
+    /// The pixels inside `area`, row after row.
+    pub fn pixels(&self, area: Rectangle) -> impl Iterator<Item = Rgb565> + '_ {
+        area.points()
+            .map(|p| self.px[(p.y as u32 * WIDTH + p.x as u32) as usize])
     }
 
-    /// Marks every row touched, so the next flush sends the whole frame.
+    /// The rectangles touched since the last call, overlapping ones merged; they are forgotten.
+    pub fn take_touched(&mut self) -> Vec<Rectangle> {
+        std::mem::take(&mut self.touched)
+    }
+
+    /// Marks every pixel touched, so the next flush sends the whole frame.
     pub fn touch_all(&mut self) {
-        self.touched = Some(0..HEIGHT);
+        self.touched = vec![self.bounding_box()];
     }
 
-    pub(crate) fn settle(&mut self) {
-        for (y, row) in (0..HEIGHT).zip(self.px.chunks(WIDTH as usize)) {
-            let sum = row.iter().fold(FNV_OFFSET, |h, c| {
-                (h ^ u64::from(RawU16::from(*c).into_inner())).wrapping_mul(FNV_PRIME)
-            });
-            if sum != self.sums[y as usize] {
-                self.sums[y as usize] = sum;
-                self.touched = Some(match self.touched.take() {
-                    Some(r) => r.start.min(y)..r.end.max(y + 1),
-                    None => y..y + 1,
-                });
-            }
+    pub(crate) fn touch(&mut self, area: Rectangle) {
+        let mut area = area.intersection(&self.bounding_box());
+        if area.is_zero_sized() {
+            return;
         }
+        while let Some(i) = self
+            .touched
+            .iter()
+            .position(|r| !r.intersection(&area).is_zero_sized())
+        {
+            let r = self.touched.swap_remove(i);
+            area = union(r, area);
+        }
+        self.touched.push(area);
     }
+}
+
+fn union(a: Rectangle, b: Rectangle) -> Rectangle {
+    let (Some(a2), Some(b2)) = (a.bottom_right(), b.bottom_right()) else {
+        return if a.is_zero_sized() { b } else { a };
+    };
+    let tl = a.top_left.component_min(b.top_left);
+    Rectangle::with_corners(tl, a2.component_max(b2))
 }
 
 impl OriginDimensions for FrameBuf {
