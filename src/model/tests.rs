@@ -22,6 +22,7 @@ fn the_fixture_gives_five_repos_nineteen_rows_and_one_note() {
     assert_eq!(snapshot.notes.len(), 1);
     assert_eq!(snapshot.notes[0].text, "as of: not yet known");
     assert_eq!(snapshot.not_shown, 0);
+    assert_eq!(snapshot.ranch.weather.wind, 0.48);
     assert_eq!(snapshot.ranch.repos[0].color, Fleet::G);
 
     let horse = rows.iter().find(|h| h.id == "h-acme-api-impl-17").unwrap();

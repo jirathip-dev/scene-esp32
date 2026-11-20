@@ -51,6 +51,7 @@ pub enum Load {
 #[serde(default)]
 pub struct Weather {
     pub sky: Sky,
+    #[serde(deserialize_with = "wind")]
     pub wind: f32,
     pub fog: u8,
     pub storm: bool,
@@ -186,6 +187,10 @@ pub fn parse(body: &[u8]) -> Result<Snapshot, ParseError> {
         notes,
         not_shown,
     })
+}
+
+fn wind<'de, D: Deserializer<'de>>(d: D) -> Result<f32, D::Error> {
+    Ok(f64::deserialize(d)? as f32)
 }
 
 fn take_notes(block: Block, notes: &mut Vec<Note>, not_shown: &mut u16) {
