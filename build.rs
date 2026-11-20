@@ -6,6 +6,20 @@ fn main() {
     let farm = farm.unwrap_or_else(|| panic!("art: swag has no farm pack"));
     let out = std::env::var_os("OUT_DIR").unwrap_or_else(|| panic!("art: no OUT_DIR"));
     artgen::build(&FARM, farm, out.as_ref()).unwrap_or_else(|e| panic!("art: {e}"));
+    device_config();
+}
+
+fn device_config() {
+    for key in ["SCENE_WIFI_SSID", "SCENE_WIFI_PASS", "SCENE_ADDR"] {
+        println!("cargo:rerun-if-env-changed={key}");
+        let Ok(value) = std::env::var(key) else {
+            continue;
+        };
+        if key == "SCENE_ADDR" && value.parse::<std::net::SocketAddrV4>().is_err() {
+            panic!("SCENE_ADDR={value}: want an IPv4 address and port, like 192.168.1.20:7779");
+        }
+        println!("cargo:rustc-env={key}={value}");
+    }
 }
 
 const fn horse(name: &'static str, symbol: &'static str) -> Sprite {

@@ -1,7 +1,8 @@
 use std::time::Duration;
 
 use crate::model::Snapshot;
-use crate::view::{self, Frame, LinkState, Mode, SpriteId, Status, What};
+use crate::net::{Link, Poll};
+use crate::view::{self, Frame, Mode, SpriteId, Status, What};
 
 const ROTATE: Duration = Duration::from_secs(20);
 
@@ -9,11 +10,6 @@ const ROTATE: Duration = Duration::from_secs(20);
 pub enum Event {
     Poll(Poll),
     Tick,
-}
-
-/// What a poll of drover brought.
-pub enum Poll {
-    New(Snapshot),
 }
 
 /// How bright the TFT's backlight is.
@@ -28,7 +24,7 @@ pub enum Backlight {
 pub struct App {
     now: Duration,
     snapshot: Option<Snapshot>,
-    last_good: Option<Duration>,
+    link: Link,
     mode: Mode,
     turned: Duration,
     frame: Option<Frame>,
@@ -41,7 +37,7 @@ impl App {
         Self {
             now: Duration::ZERO,
             snapshot: None,
-            last_good: None,
+            link: Link::new(),
             mode: Mode::Ambient { page: 0 },
             turned: Duration::ZERO,
             frame: None,
@@ -53,7 +49,9 @@ impl App {
     pub fn on(&mut self, event: Event, now: Duration) {
         self.now = now;
         match event {
-            Event::Poll(Poll::New(s)) => {
+            Event::Poll(poll) => {
+                self.link.on(&poll, now);
+                let Poll::New(s) = poll else { return };
                 if self.snapshot.is_none() {
                     self.mode = Mode::Ambient {
                         page: view::first_page(&s),
@@ -61,7 +59,6 @@ impl App {
                     self.turned = now;
                 }
                 self.snapshot = Some(s);
-                self.last_good = Some(now);
             }
             Event::Tick => {
                 if let (Some(s), Mode::Ambient { page }) = (&self.snapshot, &mut self.mode) {
@@ -95,13 +92,23 @@ impl App {
 
     /// The TFT's frame, only when it differs from the last one returned.
     pub fn frame(&mut self) -> Option<Frame> {
-        let frame = view::frame(self.snapshot.as_ref(), &self.mode, &self.link(), self.now);
+        let frame = view::frame(
+            self.snapshot.as_ref(),
+            &self.mode,
+            &self.link.state(self.now),
+            self.now,
+        );
         changed(&mut self.frame, frame)
     }
 
     /// The OLED's page, only when it differs from the last one returned.
     pub fn status(&mut self) -> Option<Status> {
-        let status = view::status(self.snapshot.as_ref(), &self.mode, &self.link(), self.now);
+        let status = view::status(
+            self.snapshot.as_ref(),
+            &self.mode,
+            &self.link.state(self.now),
+            self.now,
+        );
         changed(&mut self.status, status)
     }
 
@@ -119,15 +126,6 @@ impl App {
             .flat_map(|b| &b.rows)
             .any(|h| h.figure.state.needs_you())
     }
-
-    fn link(&self) -> LinkState {
-        match self.last_good {
-            None => LinkState::Waiting,
-            Some(t) => LinkState::Fresh {
-                age: self.now.saturating_sub(t),
-            },
-        }
-    }
 }
 
 fn changed<T: Clone + PartialEq>(last: &mut Option<T>, new: T) -> Option<T> {
@@ -138,7 +136,8 @@ fn changed<T: Clone + PartialEq>(last: &mut Option<T>, new: T) -> Option<T> {
 mod tests {
     use std::time::Duration;
 
-    use super::{App, Event, Poll};
+    use super::{App, Event};
+    use crate::net::Poll;
     use crate::{model, SCENE};
 
     fn secs(s: u64) -> Duration {

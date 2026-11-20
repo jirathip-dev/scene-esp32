@@ -2,6 +2,7 @@ pub mod led;
 pub mod oled;
 pub mod pins;
 pub mod tft;
+pub mod wifi;
 
 use std::fmt::Debug;
 

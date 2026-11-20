@@ -9,6 +9,7 @@ use embedded_graphics::prelude::Point;
 pub use crate::art::SpriteId;
 pub use crate::model::{Coat, Fleet};
 use crate::model::{Repo, Sky, Snapshot};
+use crate::net::LinkState;
 pub use status::status;
 pub use text::{fit, OLED_CHARS, TFT_CHARS};
 
@@ -103,15 +104,11 @@ pub enum Mode {
     },
 }
 
-/// How current the scene is.
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub enum LinkState {
-    Waiting,
-    Fresh { age: Duration },
-}
-
 /// The TFT's display list for `snapshot` as `mode` shows it, at `now`.
-pub fn frame(snapshot: Option<&Snapshot>, mode: &Mode, _link: &LinkState, now: Duration) -> Frame {
+pub fn frame(snapshot: Option<&Snapshot>, mode: &Mode, link: &LinkState, now: Duration) -> Frame {
+    if let LinkState::Lost { why } = link {
+        return big("scene", SpriteId::Loading, &format!("no drover: {why}"));
+    }
     let Some((s, page)) = snapshot.and_then(|s| Some((s, page(s, mode)?))) else {
         return big("scene", SpriteId::Loading, "saddling up");
     };
@@ -127,7 +124,7 @@ pub fn frame(snapshot: Option<&Snapshot>, mode: &Mode, _link: &LinkState, now: D
         layout::caption,
     );
     let mut frame = Frame {
-        header: header(repo, (page, s.ranch.repos.len())),
+        header: header(repo, (page, s.ranch.repos.len()), link),
         veil: match (weather.fog, weather.sky) {
             (0, Sky::Fog) | (1, _) => Veil::Fog1,
             (0, _) => Veil::None,
@@ -181,20 +178,22 @@ fn row(mode: &Mode) -> Option<&str> {
     }
 }
 
-fn header(repo: &Repo, (page, pages): (usize, usize)) -> Header {
+fn header(repo: &Repo, (page, pages): (usize, usize), link: &LinkState) -> Header {
+    let stale = match link {
+        LinkState::Stale { age, .. } => Some(format!("stale {}s", age.as_secs())),
+        _ => None,
+    };
     let room = 306usize.saturating_sub(pages * 8) / 6;
     let title = fit(&repo.title, room.min(24));
-    let counts = fit(
-        &repo.subtitle,
-        room.saturating_sub(title.chars().count() + 1),
-    );
+    let used = title.chars().count() + 1 + stale.as_ref().map_or(0, |s| s.len() + 1);
+    let counts = fit(&repo.subtitle, room.saturating_sub(used));
     let byte = |n: usize| u8::try_from(n).unwrap_or(u8::MAX);
     Header {
         title,
         fleet: repo.color,
         counts,
         page: (byte(page), byte(pages)),
-        stale: None,
+        stale,
     }
 }
 
