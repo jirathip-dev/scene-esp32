@@ -7,9 +7,11 @@ use embedded_graphics::image::GetPixel;
 use embedded_graphics::pixelcolor::raw::{LittleEndian, RawU1};
 use embedded_graphics::pixelcolor::{BinaryColor, Rgb565, Rgb888, RgbColor};
 use embedded_graphics::prelude::Point;
+use scene_esp32::app::{App, Event};
 use scene_esp32::art::{self, Paint, Slot, SpriteId, BACKDROP, CHROME};
+use scene_esp32::input::{Dir, Input};
 use scene_esp32::model::{self, Sky, Weather};
-use scene_esp32::net::{Fail, LinkState};
+use scene_esp32::net::{Fail, LinkState, Poll};
 use scene_esp32::render::{self, FrameBuf, HEIGHT, WIDTH};
 use scene_esp32::view::{self, Mode};
 
@@ -43,20 +45,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         line: "storm · fog".into(),
     };
     tft("storm-fog", &view::frame(Some(&storm), &ambient, &link, at))?;
-    let browse = Mode::Browse {
-        repo: "acme-api".into(),
-        row: Some("h-acme-api-impl-19".into()),
-        last_input: at,
-    };
-    tft("browse", &view::frame(Some(&snapshot), &browse, &link, at))?;
+    let mut app = App::new();
+    app.on(Event::Poll(Poll::New(snapshot.clone())), at);
+    for dir in [Dir::Up, Dir::Left] {
+        app.on(Event::Input(Input::Tilt(dir)), at);
+    }
+    tft("browse", &app.frame().ok_or("no browse frame")?)?;
     oled(
         "oled-idle",
         &view::status(Some(&snapshot), &ambient, &link, at),
     )?;
-    oled(
-        "oled-horse",
-        &view::status(Some(&snapshot), &browse, &link, at),
-    )?;
+    oled("oled-horse", &app.status().ok_or("no horse page")?)?;
     let stale = LinkState::Stale {
         age: Duration::from_secs(45),
         why: Fail::Timeout,
