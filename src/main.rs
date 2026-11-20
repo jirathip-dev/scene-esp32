@@ -15,8 +15,8 @@ fn main() -> Result<(), EspError> {
         mut tft,
         mut oled,
         mut led,
+        controls,
         wifi,
-        ..
     } = board::Board::take()?;
     let started = Instant::now();
     let mut fb = FrameBuf::new();
@@ -28,7 +28,8 @@ fn main() -> Result<(), EspError> {
     );
 
     let (tx, rx) = sync_channel::<Event>(16);
-    board::wifi::spawn(wifi, tx)?;
+    board::wifi::spawn(wifi, tx.clone())?;
+    board::controls::spawn(controls, tx)?;
 
     let mut app = App::new();
     loop {

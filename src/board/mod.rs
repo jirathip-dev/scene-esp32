@@ -1,3 +1,4 @@
+pub mod controls;
 pub mod led;
 pub mod oled;
 pub mod pins;

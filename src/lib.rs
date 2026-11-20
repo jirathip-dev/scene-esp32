@@ -8,6 +8,7 @@ compile_error!(
 
 pub mod app;
 pub mod art;
+pub mod input;
 pub mod model;
 pub mod net;
 pub mod render;
