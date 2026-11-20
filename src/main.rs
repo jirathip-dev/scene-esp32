@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use esp_idf_svc::hal::peripherals::Peripherals;
 use esp_idf_svc::hal::rmt::config::{TransmitConfig, TxChannelConfig};
-use esp_idf_svc::hal::rmt::encoder::bytes_encoder::{BytesEncoder, BytesEncoderConfig};
+use esp_idf_svc::hal::rmt::encoder::{BytesEncoder, BytesEncoderConfig};
 use esp_idf_svc::hal::rmt::{PinState, Symbol, TxChannelDriver};
 use esp_idf_svc::hal::units::Hertz;
 use esp_idf_svc::sys::EspError;
