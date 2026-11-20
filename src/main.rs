@@ -1,25 +1,10 @@
-use std::time::Duration;
+mod board;
 
-use esp_idf_svc::hal::peripherals::Peripherals;
-use esp_idf_svc::hal::rmt::config::{TransmitConfig, TxChannelConfig};
-use esp_idf_svc::hal::rmt::encoder::{BytesEncoder, BytesEncoderConfig};
-use esp_idf_svc::hal::rmt::{PinState, Symbol, TxChannelDriver};
-use esp_idf_svc::hal::units::Hertz;
-use esp_idf_svc::sys::EspError;
+use std::time::Instant;
 
-const TICKS: Hertz = Hertz(20_000_000);
-const ON: [u8; 3] = [16, 0, 0];
-const OFF: [u8; 3] = [0, 0, 0];
-
-fn bit(high: u64, low: u64) -> Result<Symbol, EspError> {
-    Symbol::new_with(
-        TICKS,
-        PinState::High,
-        Duration::from_nanos(high),
-        PinState::Low,
-        Duration::from_nanos(low),
-    )
-}
+use esp_idf_svc::sys::{heap_caps_get_total_size, EspError, MALLOC_CAP_SPIRAM};
+use scene_esp32::app::{App, Event};
+use scene_esp32::render::{self, FrameBuf};
 
 fn main() -> Result<(), EspError> {
     esp_idf_svc::sys::link_patches();
@@ -30,28 +15,36 @@ fn main() -> Result<(), EspError> {
         Err(e) => log::error!("scene fixture does not parse: {e}"),
     }
 
-    let pins = Peripherals::take()?.pins;
-    #[cfg(not(feature = "led-gpio38"))]
-    let pin = pins.gpio48;
-    #[cfg(feature = "led-gpio38")]
-    let pin = pins.gpio38;
-    let mut led = TxChannelDriver::new(
-        pin,
-        &TxChannelConfig {
-            resolution: TICKS,
-            ..Default::default()
-        },
-    )?;
-    let mut ws2812 = BytesEncoder::with_config(&BytesEncoderConfig {
-        bit0: bit(350, 800)?,
-        bit1: bit(700, 600)?,
-        msb_first: true,
-        ..Default::default()
-    })?;
+    let board::Board {
+        mut tft,
+        mut oled,
+        mut led,
+        ..
+    } = board::Board::take()?;
+    let started = Instant::now();
+    let mut fb = FrameBuf::new();
+    // SAFETY: reads the size of the PSRAM heap; no pointer is passed.
+    let psram = unsafe { heap_caps_get_total_size(MALLOC_CAP_SPIRAM) };
+    log::info!(
+        "psram {psram} bytes, frame buffer at {:p}",
+        fb.rows(0..1).as_ptr()
+    );
 
-    for grb in [ON, OFF].iter().cycle() {
-        led.send_and_wait(&mut ws2812, grb, &TransmitConfig::default())?;
-        std::thread::sleep(Duration::from_millis(500));
+    let mut app = App::new();
+    loop {
+        app.on(Event::Tick, started.elapsed());
+        if let Some(frame) = app.frame() {
+            render::draw(&frame, &mut fb);
+            if cfg!(feature = "soak") {
+                fb.touch_all();
+            }
+            tft.flush(&mut fb)?;
+        }
+        if let Some(status) = app.status() {
+            oled.show(&status)?;
+        }
+        tft.backlight(app.backlight())?;
+        led.show(app.needs_you())?;
+        std::thread::sleep(app.next_tick());
     }
-    Ok(())
 }

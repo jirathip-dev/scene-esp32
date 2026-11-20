@@ -19,6 +19,12 @@ paths = ["src/render/**"]
 reason = "render draws a Frame; view is the only reader of the model"
 
 [[ban]]
+pattern = ".gpio"
+paths = ["src/**"]
+except = ["src/board/pins.rs"]
+reason = "the pin map is one file"
+
+[[ban]]
 pattern = "Method::Post"
 paths = ["src/**"]
 reason = "the device is read-only: actions wait for a later decision"
