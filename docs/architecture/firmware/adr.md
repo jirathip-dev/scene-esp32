@@ -196,7 +196,7 @@ One at a time: each builds on the one before, so no two are in flight together.
 - `Cargo.toml` is edited by M2 and M3 only; `ci.yml` by M2 only (it tests the whole workspace and uploads
   `target/shots/`, so later milestones add tests without touching it).
 
-## `.drover/arch.toml` lines (M2 adds them in its PR)
+## `.drover/arch.toml` lines (the ADR's PR adds all but the `.gpio` ban; M2 adds that one with `pins.rs`)
 
 ```toml
 frozen = ["README.md"]

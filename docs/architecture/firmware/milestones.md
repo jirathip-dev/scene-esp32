@@ -36,7 +36,7 @@ settled first, with the loop every later milestone plugs into.
   boot `Frame` (three colour bars with their names, the panel's name, the uptime) and a boot `Status`.
 - `main.rs` as in [usage.md](usage.md), without the two threads. `examples/shot.rs`. CI: both panel builds, the
   workspace's host tests, `shot` with its PNGs uploaded, arch-check.
-- `.drover/arch.toml` from the ADR. The README's board and build text moves to `docs/`, and its "not wired up
+- The `.gpio` ban from the ADR in `.drover/arch.toml`. The README's board and build text moves to `docs/`, and its "not wired up
   yet" line goes. The README only loses and edits lines, so the freeze passes in the same PR.
 
 **AC.**

@@ -1,0 +1,33 @@
+frozen = ["README.md"]
+shared = ["src/main.rs"]
+
+[[collect]]
+dir = "docs"
+glob = "*.md"
+
+[comments]
+policy = "strict"
+
+[[ban]]
+pattern = "esp_idf"
+paths = ["src/lib.rs", "src/app.rs", "src/model/**", "src/net/**", "src/input/**", "src/art/**", "src/view/**", "src/render/**", "artgen/**", "examples/**"]
+reason = "the library is pure: it builds and tests on the host; esp-idf lives in src/main.rs and src/board"
+
+[[ban]]
+pattern = "crate::model"
+paths = ["src/render/**"]
+reason = "render draws a Frame; view is the only reader of the model"
+
+[[ban]]
+pattern = "Method::Post"
+paths = ["src/**"]
+reason = "the device is read-only: actions wait for a later decision"
+
+[[size]]
+paths = ["src/**/*.rs", "artgen/src/**/*.rs", "examples/*.rs", "build.rs"]
+max_file_lines = 300
+max_fn_lines = 60
+
+[[size]]
+paths = ["src/main.rs"]
+max_file_lines = 80
