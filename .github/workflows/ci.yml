@@ -9,10 +9,21 @@ on:
 env:
   CARGO_TERM_COLOR: always
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  DROVER_BUILD: build-staging-9ea69d9
+  DROVER_SHA256: 39a24079dfe39d2ca196bb61f75a7f8735f5f6eba74d84784ad82895f3e5a1be
 
 jobs:
   firmware:
+    name: firmware (${{ matrix.panel }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - panel: ili9341
+            flags: ""
+          - panel: st7789
+            flags: --no-default-features --features st7789
     steps:
       - uses: actions/checkout@v4
       - uses: esp-rs/xtensa-toolchain@v1.7.0
@@ -21,6 +32,48 @@ jobs:
           buildtargets: esp32s3
           ldproxy: true
       - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.panel }}
+      - run: cargo build --release ${{ matrix.flags }}
+
+  host:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: esp-rs/xtensa-toolchain@v1.7.0
+        with:
+          default: true
+          buildtargets: esp32s3
+          ldproxy: false
+      - uses: Swatinem/rust-cache@v2
       - run: cargo fmt --check
-      - run: cargo build --release
-      - run: cargo test --lib --target x86_64-unknown-linux-gnu
+      - run: cargo test --workspace --target x86_64-unknown-linux-gnu
+      - run: cargo run --example shot --target x86_64-unknown-linux-gnu
+      - uses: actions/upload-artifact@v4
+        with:
+          name: shots
+          path: target/shots/
+          if-no-files-found: error
+
+  arch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: drover (pinned release build)
+        run: |
+          curl -sSfL -o "$RUNNER_TEMP/drover" "https://github.com/jirathip-dev/drover/releases/download/$DROVER_BUILD/drover-x86_64-unknown-linux-gnu"
+          echo "$DROVER_SHA256  $RUNNER_TEMP/drover" | sha256sum -c -
+          chmod +x "$RUNNER_TEMP/drover"
+      - name: arch-check (.drover/arch.toml)
+        env:
+          BODY: ${{ github.event.pull_request.body }}
+          EVENT: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT" = pull_request ]; then
+            printf '%s' "$BODY" > "$RUNNER_TEMP/pr-body.md"
+            "$RUNNER_TEMP/drover" arch-check --base HEAD^1 --pr-body "$RUNNER_TEMP/pr-body.md"
+          else
+            "$RUNNER_TEMP/drover" arch-check
+          fi
