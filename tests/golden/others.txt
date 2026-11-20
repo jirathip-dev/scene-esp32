@@ -1,0 +1,41 @@
+Frame {
+    header: Header {
+        title: "others",
+        fleet: None,
+        counts: "1 idle",
+        page: (
+            4,
+            5,
+        ),
+        stale: None,
+    },
+    veil: None,
+    rain: false,
+    items: [
+        Item {
+            key: "h-scratch",
+            at: Point {
+                x: 29,
+                y: 146,
+            },
+            what: Horse {
+                sprite: Idle,
+                coat: Some(
+                    Coat {
+                        coat: Rgb565(r: 7, g: 15, b: 8),
+                        dark: Rgb565(r: 5, g: 10, b: 6),
+                        mane: Rgb565(r: 3, g: 5, b: 3),
+                        blaze: None,
+                    },
+                ),
+                fleet: None,
+                sway: 0,
+            },
+        },
+    ],
+    cursor: None,
+    caption: Caption {
+        text: "load 1.20 · mem normal · swap ?",
+        tone: Mute,
+    },
+}

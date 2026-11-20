@@ -7,33 +7,74 @@ use embedded_graphics::image::GetPixel;
 use embedded_graphics::pixelcolor::raw::{LittleEndian, RawU1};
 use embedded_graphics::pixelcolor::{BinaryColor, Rgb565, Rgb888, RgbColor};
 use embedded_graphics::prelude::Point;
-use scene_esp32::app::{App, Event};
 use scene_esp32::art::{self, Paint, Slot, SpriteId, BACKDROP, CHROME};
-use scene_esp32::model::{self, Coat};
+use scene_esp32::model::{self, Sky, Weather};
 use scene_esp32::render::{self, FrameBuf, HEIGHT, WIDTH};
+use scene_esp32::view::{self, LinkState, Mode};
 
 type Oled =
     Framebuffer<BinaryColor, RawU1, LittleEndian, 128, 64, { buffer_size::<BinaryColor>(128, 64) }>;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     std::fs::create_dir_all("target/shots")?;
-    let mut app = App::new();
-    app.on(Event::Tick, Duration::from_secs(12));
+    let snapshot = model::parse(scene_esp32::SCENE.as_bytes()).map_err(|e| format!("{e:?}"))?;
+    let (at, link) = (
+        Duration::from_millis(1200),
+        LinkState::Fresh {
+            age: Duration::from_secs(3),
+        },
+    );
+    for (page, repo) in snapshot.ranch.repos.iter().enumerate() {
+        let frame = view::frame(Some(&snapshot), &Mode::Ambient { page }, &link, at);
+        tft(&format!("scene-{}", repo.id), &frame)?;
+    }
+    let ambient = Mode::Ambient { page: 0 };
+    tft(
+        "loading",
+        &view::frame(None, &ambient, &LinkState::Waiting, at),
+    )?;
+    let mut storm = snapshot.clone();
+    storm.ranch.weather = Weather {
+        sky: Sky::Storm,
+        wind: 1.0,
+        fog: 2,
+        storm: true,
+        line: "storm · fog".into(),
+    };
+    tft("storm-fog", &view::frame(Some(&storm), &ambient, &link, at))?;
+    let browse = Mode::Browse {
+        repo: "acme-api".into(),
+        row: Some("h-acme-api-impl-19".into()),
+        last_input: at,
+    };
+    tft("browse", &view::frame(Some(&snapshot), &browse, &link, at))?;
+    oled(
+        "oled-idle",
+        &view::status(Some(&snapshot), &ambient, &link, at),
+    )?;
+    oled(
+        "oled-horse",
+        &view::status(Some(&snapshot), &browse, &link, at),
+    )?;
+    write_art()
+}
 
+fn tft(name: &str, frame: &view::Frame) -> Result<(), Box<dyn std::error::Error>> {
     let mut fb = FrameBuf::new();
-    render::draw(&app.frame().ok_or("no boot frame")?, &mut fb);
+    render::draw(frame, &mut fb);
     let rgb = fb.rows(0..HEIGHT).iter().flat_map(|c| rgb888(*c)).collect();
-    write("target/shots/boot.png", (WIDTH, HEIGHT), rgb)?;
+    write(&format!("target/shots/{name}.png"), (WIDTH, HEIGHT), rgb)
+}
 
+fn oled(name: &str, status: &view::Status) -> Result<(), Box<dyn std::error::Error>> {
     let mut oled = Oled::new();
-    render::status(&app.status().ok_or("no boot status")?, &mut oled)?;
+    render::status(status, &mut oled)?;
     let points = (0..64).flat_map(|y| (0..128).map(move |x| Point::new(x, y)));
     let on = |p| oled.pixel(p) == Some(BinaryColor::On);
     let rgb = points
         .flat_map(|p| if on(p) { [255; 3] } else { [0; 3] })
         .collect();
-    write("target/shots/oled-boot.png", (128, 64), rgb)?;
-    write_art()
+    write(&format!("target/shots/{name}.png"), (128, 64), rgb)
 }
 
 const IDS: [SpriteId; 8] = [
@@ -56,7 +97,7 @@ fn write_art() -> Result<(), Box<dyn std::error::Error>> {
         .iter()
         .flat_map(|r| &r.blocks)
         .flat_map(|b| &b.rows);
-    let mut coats = vec![default_coat()];
+    let mut coats = vec![render::DEFAULT_COAT];
     for coat in rows.filter_map(|h| h.figure.coat) {
         if coats.len() < 3 && !coats.contains(&coat) {
             coats.push(coat);
@@ -96,16 +137,6 @@ fn write_art() -> Result<(), Box<dyn std::error::Error>> {
     }
     let rgb = px.into_iter().flat_map(rgb888).collect();
     write("target/shots/art.png", (w as u32, h as u32), rgb)
-}
-
-fn default_coat() -> Coat {
-    let c = |r, g, b| Rgb565::from(Rgb888::new(r, g, b));
-    Coat {
-        coat: c(0xc8, 0x9a, 0x56),
-        dark: c(0xa3, 0x7a, 0x3c),
-        mane: c(0xe8, 0xdc, 0xc0),
-        blaze: Some(c(0xef, 0xe7, 0xdc)),
-    }
 }
 
 fn rgb888(c: Rgb565) -> [u8; 3] {

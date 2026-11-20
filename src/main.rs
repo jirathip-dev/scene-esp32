@@ -1,28 +1,16 @@
 mod board;
 
+use std::sync::mpsc::sync_channel;
 use std::time::Instant;
 
-use esp_idf_svc::sys::{heap_caps_get_total_size, EspError, MALLOC_CAP_SPIRAM};
-use scene_esp32::app::{App, Event};
+use esp_idf_svc::sys::{heap_caps_get_total_size, EspError, ESP_FAIL, MALLOC_CAP_SPIRAM};
+use scene_esp32::app::{App, Event, Poll};
+use scene_esp32::model;
 use scene_esp32::render::{self, FrameBuf};
 
 fn main() -> Result<(), EspError> {
     esp_idf_svc::sys::link_patches();
     esp_idf_svc::log::EspLogger::initialize_default();
-
-    match scene_esp32::model::parse(scene_esp32::SCENE.as_bytes()) {
-        Ok(s) => log::info!(
-            "scene fixture: {} repos, {} rows",
-            s.ranch.repos.len(),
-            s.ranch
-                .repos
-                .iter()
-                .flat_map(|r| &r.blocks)
-                .map(|b| b.rows.len())
-                .sum::<usize>()
-        ),
-        Err(e) => log::error!("scene fixture does not parse: {e:?}"),
-    }
 
     let board::Board {
         mut tft,
@@ -39,9 +27,20 @@ fn main() -> Result<(), EspError> {
         fb.rows(0..1).as_ptr()
     );
 
+    let (tx, rx) = sync_channel::<Event>(16);
+    let boot = tx.clone();
+    std::thread::Builder::new()
+        .stack_size(32 * 1024)
+        .spawn(move || match model::parse(scene_esp32::SCENE.as_bytes()) {
+            Ok(s) => drop(boot.send(Event::Poll(Poll::New(s)))),
+            Err(e) => log::error!("scene fixture does not parse: {e:?}"),
+        })
+        .map_err(|_| EspError::from_infallible::<ESP_FAIL>())?;
+
     let mut app = App::new();
     loop {
-        app.on(Event::Tick, started.elapsed());
+        let event = rx.recv_timeout(app.next_tick()).unwrap_or(Event::Tick);
+        app.on(event, started.elapsed());
         if let Some(frame) = app.frame() {
             render::draw(&frame, &mut fb);
             if cfg!(feature = "soak") {
@@ -54,6 +53,5 @@ fn main() -> Result<(), EspError> {
         }
         tft.backlight(app.backlight())?;
         led.show(app.needs_you())?;
-        std::thread::sleep(app.next_tick());
     }
 }

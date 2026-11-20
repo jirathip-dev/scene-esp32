@@ -140,6 +140,13 @@ pub enum State {
     Other,
 }
 
+impl State {
+    /// A row needs you when it is waiting on an answer, blocked or dead.
+    pub fn needs_you(self) -> bool {
+        matches!(self, Self::Needs | Self::Blocked | Self::Dead)
+    }
+}
+
 /// A horse's four colours; no blaze is drawn in the coat colour.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Coat {

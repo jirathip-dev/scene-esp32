@@ -1,0 +1,156 @@
+Frame {
+    header: Header {
+        title: "acme-web",
+        fleet: C,
+        counts: "5 queued·1 blocked·3 working",
+        page: (
+            2,
+            5,
+        ),
+        stale: None,
+    },
+    veil: None,
+    rain: false,
+    items: [
+        Item {
+            key: "h-acme-web-q45",
+            at: Point {
+                x: 4,
+                y: 200,
+            },
+            what: Marker {
+                needs: false,
+                frame: 0,
+            },
+        },
+        Item {
+            key: "h-acme-web-q46",
+            at: Point {
+                x: 28,
+                y: 200,
+            },
+            what: Marker {
+                needs: false,
+                frame: 0,
+            },
+        },
+        Item {
+            key: "h-acme-web-q47",
+            at: Point {
+                x: 52,
+                y: 200,
+            },
+            what: Marker {
+                needs: false,
+                frame: 0,
+            },
+        },
+        Item {
+            key: "h-acme-web-q49",
+            at: Point {
+                x: 76,
+                y: 200,
+            },
+            what: Marker {
+                needs: false,
+                frame: 0,
+            },
+        },
+        Item {
+            key: "h-acme-web-q50",
+            at: Point {
+                x: 100,
+                y: 200,
+            },
+            what: Marker {
+                needs: false,
+                frame: 0,
+            },
+        },
+        Item {
+            key: "h-acme-web-impl-44",
+            at: Point {
+                x: 29,
+                y: 146,
+            },
+            what: Horse {
+                sprite: Needs,
+                coat: Some(
+                    Coat {
+                        coat: Rgb565(r: 18, g: 26, b: 11),
+                        dark: Rgb565(r: 14, g: 20, b: 9),
+                        mane: Rgb565(r: 9, g: 13, b: 5),
+                        blaze: None,
+                    },
+                ),
+                fleet: C,
+                sway: 0,
+            },
+        },
+        Item {
+            key: "h-acme-web-impl-41",
+            at: Point {
+                x: 85,
+                y: 147,
+            },
+            what: Horse {
+                sprite: Working,
+                coat: Some(
+                    Coat {
+                        coat: Rgb565(r: 18, g: 26, b: 11),
+                        dark: Rgb565(r: 14, g: 20, b: 9),
+                        mane: Rgb565(r: 9, g: 13, b: 5),
+                        blaze: None,
+                    },
+                ),
+                fleet: C,
+                sway: -1,
+            },
+        },
+        Item {
+            key: "h-acme-web-rev-38",
+            at: Point {
+                x: 141,
+                y: 147,
+            },
+            what: Horse {
+                sprite: Working,
+                coat: Some(
+                    Coat {
+                        coat: Rgb565(r: 17, g: 22, b: 6),
+                        dark: Rgb565(r: 13, g: 17, b: 5),
+                        mane: Rgb565(r: 6, g: 8, b: 3),
+                        blaze: None,
+                    },
+                ),
+                fleet: C,
+                sway: 2,
+            },
+        },
+        Item {
+            key: "h-acme-web-impl-48-contrast-audit-for-every-settings-pane-abxx",
+            at: Point {
+                x: 197,
+                y: 146,
+            },
+            what: Horse {
+                sprite: Working,
+                coat: Some(
+                    Coat {
+                        coat: Rgb565(r: 18, g: 26, b: 11),
+                        dark: Rgb565(r: 14, g: 20, b: 9),
+                        mane: Rgb565(r: 9, g: 13, b: 5),
+                        blaze: None,
+                    },
+                ),
+                fleet: C,
+                sway: 3,
+            },
+        },
+    ],
+    cursor: None,
+    caption: Caption {
+        text: "load 1.20 · mem normal · swap ?",
+        tone: Mute,
+    },
+}
