@@ -64,8 +64,7 @@ fn run(c: Controls, tx: &SyncSender<Event>) -> Result<(), EspError> {
     loop {
         let pressed = pins.iter().zip(&mut buttons).zip(BUTTONS);
         let mut inputs: Vec<Input> = pressed
-            .filter(|((pin, button), _)| button.read(pin.is_low()))
-            .map(|(_, b)| Input::Press(b))
+            .filter_map(|((pin, button), b)| button.read(pin.is_low()).then_some(Input::Press(b)))
             .collect();
         inputs.extend(stick.read(read()?, started.elapsed()).map(Input::Tilt));
         for input in inputs {
