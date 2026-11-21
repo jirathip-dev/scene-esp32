@@ -1,16 +1,24 @@
-frozen = ["README.md"]
+frozen = ["README.md", "src/lib.rs", "examples/shot.rs"]
 shared = ["src/main.rs"]
 
 [[collect]]
 dir = "docs"
 glob = "*.md"
 
+[[collect]]
+dir = "shots/tests"
+glob = "*.rs"
+
+[[collect]]
+dir = "src"
+glob = "*/*.rs"
+
 [comments]
 policy = "strict"
 
 [[ban]]
 pattern = "esp_idf"
-paths = ["src/lib.rs", "src/app.rs", "src/model/**", "src/net/**", "src/input/**", "src/art/**", "src/view/**", "src/render/**", "artgen/**", "examples/**"]
+paths = ["src/lib.rs", "src/app.rs", "src/model/**", "src/net/**", "src/input/**", "src/art/**", "src/view/**", "src/render/**", "artgen/**", "shots/**"]
 reason = "the library is pure: it builds and tests on the host; esp-idf lives in src/main.rs and src/board"
 
 [[ban]]
@@ -29,8 +37,13 @@ pattern = "Method::Post"
 paths = ["src/**"]
 reason = "the device is read-only: actions wait for a later decision"
 
+[[ban]]
+pattern = "fn main"
+paths = ["examples/**"]
+reason = "screenshots are tests: add a file in shots/tests"
+
 [[size]]
-paths = ["src/**/*.rs", "artgen/src/**/*.rs", "examples/*.rs", "build.rs"]
+paths = ["src/**/*.rs", "artgen/src/**/*.rs", "shots/**/*.rs", "build.rs"]
 max_file_lines = 300
 max_fn_lines = 60
 

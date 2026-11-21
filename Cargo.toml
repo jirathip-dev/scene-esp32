@@ -6,7 +6,7 @@ license = "MIT"
 publish = false
 
 [workspace]
-members = ["artgen"]
+members = ["artgen", "shots"]
 
 [[bin]]
 name = "scene-esp32"
@@ -31,9 +31,6 @@ esp-idf-svc = "0.53"
 log = "0.4"
 mipidsi = "0.10"
 ssd1306 = "0.10"
-
-[dev-dependencies]
-png = "0.18"
 
 [build-dependencies]
 artgen = { path = "artgen" }

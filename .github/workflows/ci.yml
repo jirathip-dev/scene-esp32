@@ -52,7 +52,6 @@ jobs:
         run: |
           cargo tree -e normal > "$RUNNER_TEMP/tree.txt"
           ! grep -E 'resvg|usvg' "$RUNNER_TEMP/tree.txt"
-      - run: cargo run --example shot --target x86_64-unknown-linux-gnu
       - uses: actions/upload-artifact@v4
         with:
           name: shots

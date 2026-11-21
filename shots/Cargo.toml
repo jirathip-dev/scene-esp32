@@ -1,0 +1,15 @@
+[package]
+name = "shots"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+
+[lib]
+test = false
+doctest = false
+
+[dependencies]
+embedded-graphics = "0.8"
+png = "0.18"
+scene-esp32 = { path = ".." }

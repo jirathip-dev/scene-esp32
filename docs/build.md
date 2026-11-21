@@ -21,8 +21,8 @@ The library and its tests run on the host (use your host's triple, e.g. `aarch64
 
 ```sh
 cargo test --workspace --target x86_64-unknown-linux-gnu
-cargo run --example shot --target x86_64-unknown-linux-gnu
 ```
 
-`shot` writes `target/shots/boot.png` (the TFT, 320×240) and `target/shots/oled-boot.png` (the
-OLED, 128×64). CI uploads that folder.
+The `shots` crate's tests (`cargo test -p shots`, one file per feature in `shots/tests/`) write the 15
+screenshots to `target/shots/`: TFT frames at 320×240, `oled-*` at 128×64 and the `art` sheet. CI uploads
+that folder.
