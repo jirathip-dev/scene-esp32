@@ -1465,7 +1465,6 @@ dependencies = [
  "esp-idf-svc",
  "log",
  "mipidsi",
- "png",
  "serde",
  "serde_json",
  "ssd1306",
@@ -1545,6 +1544,15 @@ name = "shlex"
 version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f8fadd59c855ef2080decdef8ff161eb6661b86933c9d82e5ba29dc602a55aba"
+
+[[package]]
+name = "shots"
+version = "0.1.0"
+dependencies = [
+ "embedded-graphics",
+ "png",
+ "scene-esp32",
+]
 
 [[package]]
 name = "simd-adler32"

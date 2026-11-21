@@ -22,6 +22,7 @@ state-to-sprite table are in [architecture/firmware/shapes.md](architecture/firm
 - The OLED: the link and its age, the weather line, totals across repos, then the notes; with a row selected,
   its full title, state and age, host and subtitle. It shifts a pixel each minute.
 
-`cargo run --example shot --target <host>` writes `scene-<repo>.png` for each fixture repo, `loading`,
-`storm-fog`, `browse`, `oled-idle` and `oled-horse` to `target/shots/`. `GOLDEN=1 cargo test --target <host>`
+`cargo test -p shots --target <host>` writes `scene-<repo>.png` for each fixture repo, `loading`, `storm-fog`
+and `oled-idle` (`shots/tests/scene.rs`), `browse` and `oled-horse` (`shots/tests/browse.rs`) and `stale`,
+`lost`, `oled-stale` and `oled-lost` (`shots/tests/link.rs`) to `target/shots/`. `GOLDEN=1 cargo test --target <host>`
 rewrites `tests/golden/<repo>.txt`, the display list of each fixture repo.

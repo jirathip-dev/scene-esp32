@@ -21,5 +21,5 @@ Sprites are drawn without anti-aliasing, and each element's opacity is rounded t
 every pixel is exactly one paint. A pixel that is no fixed colour of its symbol and no slot fails the build with
 the symbol and the pixel. So does art of 256 KB or more.
 
-`cargo run --example shot --target <host>` writes `target/shots/art.png`: the backdrop, then every sprite in the
+`cargo test -p shots --test art --target <host>` (`shots/tests/art.rs`) writes `target/shots/art.png`: the backdrop, then every sprite in the
 pack's default coat and in two of the fixture's coats.
