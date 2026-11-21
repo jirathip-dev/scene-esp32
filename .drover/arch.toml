@@ -1,4 +1,4 @@
-frozen = ["README.md", "examples/shot.rs"]
+frozen = ["README.md", "src/lib.rs", "examples/shot.rs"]
 shared = ["src/main.rs"]
 
 [[collect]]
@@ -8,6 +8,10 @@ glob = "*.md"
 [[collect]]
 dir = "shots/tests"
 glob = "*.rs"
+
+[[collect]]
+dir = "src"
+glob = "*/*.rs"
 
 [comments]
 policy = "strict"

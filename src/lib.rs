@@ -14,13 +14,6 @@ pub mod net;
 pub mod render;
 pub mod view;
 
-/// The panel this build drives, picked by the `ili9341` or `st7789` feature.
-pub const PANEL: &str = if cfg!(feature = "st7789") {
-    "ST7789"
-} else {
-    "ILI9341"
-};
-
 /// drover's demo-fleet export of `/screens/scene`, checked in as the fixture for the host's tests and shots.
 #[cfg(not(target_os = "espidf"))]
 pub const SCENE: &str = include_str!("../fixtures/scene.json");
